@@ -366,6 +366,46 @@ public class FinalHttp {
     	return download(url, null, target, false, callback);
     }
     
+    /**
+     * 同步下载请求
+     *
+     * @param url
+     * @return
+     * @author 李明艺 2015.8.14
+     */
+    public InputStream download(String url) {
+        IOException cause = null;
+        final HttpGet get = new HttpGet(getUrlWithQueryString(url, null));
+        try {
+            HttpResponse response = httpClient.execute(get, httpContext);
+            int statusCode = response.getStatusLine()
+                    .getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                return response
+                        .getEntity().getContent();
+            } else {
+                if (response != null) {
+                    response.getEntity().getContent().close();
+                }
+                throw new NetworkErrorException("网络访问失败");
+            }
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            cause = e;
+            cause.printStackTrace();
+        } catch (NullPointerException e) {
+            // HttpClient 4.0.x 之前的一个bug
+            // http://code.google.com/p/android/issues/detail?id=5255
+            cause = new IOException("NPE in HttpClient" + e.getMessage());
+            cause.printStackTrace();
+        } catch (Exception e) {
+            cause = new IOException("Exception" + e.getMessage());
+            cause.printStackTrace();
+        }
+        return null;
+    }
+    
 
     public HttpHandler<File> download(String url,String target,boolean isResume,AjaxCallBack<File> callback){
     	 return download(url, null, target, isResume, callback);
